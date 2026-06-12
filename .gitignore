@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+
+# Node
+node_modules/
+dist/
+
+# Env & IDE
+.env
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local demo database
+*.db
+
+# Claude
+.claude/
