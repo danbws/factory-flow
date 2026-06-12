@@ -6,6 +6,8 @@ for industrial clients for 10 years, distilled into a small, readable codebase.
 Production orders move through a configurable routing (Weaving → Dyeing → Finishing → Quality
 Check). The dashboard shows what's sitting on the factory floor right now, per stage.
 
+[![CI](https://github.com/danbws/factory-flow/actions/workflows/ci.yml/badge.svg)](https://github.com/danbws/factory-flow/actions/workflows/ci.yml)
+
 ![Dashboard screenshot](docs/dashboard.png)
 
 ## Why this project
