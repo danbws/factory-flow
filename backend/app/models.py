@@ -57,6 +57,19 @@ class ProductionOrder(Base):
     def current_stage(self) -> "OrderStage | None":
         return next((s for s in self.stages if s.finished_at is None), None)
 
+    @property
+    def lead_time_hours(self) -> float | None:
+        """Wall-clock hours from the first stage starting to the last finishing.
+
+        Only defined once every stage is finished — a partially-run order has no
+        meaningful lead time yet. This is the number a plant manager actually
+        tracks: how long a batch really took, queue time included."""
+        starts = [s.started_at for s in self.stages if s.started_at]
+        finishes = [s.finished_at for s in self.stages if s.finished_at]
+        if not starts or len(finishes) != len(self.stages):
+            return None
+        return (max(finishes) - min(starts)).total_seconds() / 3600
+
 
 class OrderStage(Base):
     """One step of the production routing (e.g. weaving, dyeing, finishing)."""

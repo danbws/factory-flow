@@ -36,6 +36,12 @@ export default function DashboardPage() {
           </p>
           <p className="mt-1 text-sm text-slate-500">Open quantity (kg/m)</p>
         </Card>
+        <Card>
+          <p className="text-3xl font-bold text-slate-800">
+            {data.avg_lead_time_hours != null ? `${data.avg_lead_time_hours}h` : "—"}
+          </p>
+          <p className="mt-1 text-sm text-slate-500">Avg lead time (completed)</p>
+        </Card>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">

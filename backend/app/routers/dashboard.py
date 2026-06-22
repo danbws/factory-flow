@@ -38,6 +38,15 @@ def dashboard(db: Session = Depends(get_db)):
         ).all()
     )
 
+    # Average lead time across completed orders — the headline efficiency KPI.
+    done = db.scalars(
+        select(ProductionOrder)
+        .options(selectinload(ProductionOrder.stages))
+        .where(ProductionOrder.status == OrderStatus.DONE)
+    ).all()
+    lead_times = [o.lead_time_hours for o in done if o.lead_time_hours is not None]
+    avg_lead_time = round(sum(lead_times) / len(lead_times), 1) if lead_times else None
+
     recent = db.scalars(
         select(ProductionOrder)
         .options(selectinload(ProductionOrder.stages), selectinload(ProductionOrder.product))
@@ -49,5 +58,6 @@ def dashboard(db: Session = Depends(get_db)):
         orders_by_status={s.value: by_status.get(s, 0) for s in OrderStatus},
         open_quantity_kg=float(open_qty or 0),
         stage_load=stage_load,
+        avg_lead_time_hours=avg_lead_time,
         recent_orders=recent,
     )
