@@ -1,55 +1,86 @@
 import type { OrderStatus, Stage } from "../api";
 
-const STATUS_STYLES: Record<OrderStatus, string> = {
-  planned: "bg-slate-100 text-slate-700",
-  in_progress: "bg-amber-100 text-amber-800",
-  done: "bg-emerald-100 text-emerald-800",
-  cancelled: "bg-rose-100 text-rose-700",
-};
-
-const STATUS_LABELS: Record<OrderStatus, string> = {
-  planned: "Planned",
-  in_progress: "In progress",
-  done: "Done",
-  cancelled: "Cancelled",
+const STATUS_META: Record<OrderStatus, { label: string; dot: string; text: string }> = {
+  planned: { label: "Planned", dot: "bg-slate-400", text: "text-slate-600" },
+  in_progress: { label: "In progress", dot: "bg-amber-500", text: "text-amber-700" },
+  done: { label: "Done", dot: "bg-emerald-500", text: "text-emerald-700" },
+  cancelled: { label: "Cancelled", dot: "bg-rose-500", text: "text-rose-700" },
 };
 
 export function StatusBadge({ status }: { status: OrderStatus }) {
+  const m = STATUS_META[status];
   return (
-    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_STYLES[status]}`}>
-      {STATUS_LABELS[status]}
+    <span className={`inline-flex items-center gap-1.5 text-xs font-medium ${m.text}`}>
+      <span className={`h-1.5 w-1.5 rounded-full ${m.dot}`} />
+      {m.label}
     </span>
   );
 }
 
 export function StageProgress({ stages }: { stages: Stage[] }) {
   return (
-    <div className="flex items-center gap-1.5">
+    <div className="flex items-center gap-1">
       {stages.map((s) => {
         const state = s.finished_at ? "done" : s.started_at ? "active" : "pending";
         return (
-          <div key={s.id} className="flex items-center gap-1.5" title={s.name}>
-            <div
-              className={
-                state === "done"
-                  ? "h-2.5 w-2.5 rounded-full bg-emerald-500"
-                  : state === "active"
-                    ? "h-2.5 w-2.5 rounded-full bg-amber-400 ring-4 ring-amber-100"
-                    : "h-2.5 w-2.5 rounded-full bg-slate-200"
-              }
-            />
-          </div>
+          <span
+            key={s.id}
+            title={s.name}
+            className={
+              state === "done"
+                ? "h-1.5 w-5 rounded-sm bg-emerald-500"
+                : state === "active"
+                  ? "h-1.5 w-5 rounded-sm bg-amber-400"
+                  : "h-1.5 w-5 rounded-sm bg-slate-200"
+            }
+          />
         );
       })}
     </div>
   );
 }
 
-export function Card({ title, children }: { title?: string; children: React.ReactNode }) {
+/** A bordered panel with an optional ruled header — the workhorse container. */
+export function Panel({
+  title,
+  actions,
+  children,
+  bodyClass = "p-4",
+}: {
+  title?: string;
+  actions?: React.ReactNode;
+  children: React.ReactNode;
+  bodyClass?: string;
+}) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-      {title && <h2 className="mb-4 text-sm font-semibold text-slate-500">{title}</h2>}
-      {children}
+    <section className="rounded-md border border-slate-200 bg-white">
+      {title && (
+        <header className="flex items-center justify-between border-b border-slate-200 px-4 py-2.5">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-500">{title}</h2>
+          {actions}
+        </header>
+      )}
+      <div className={bodyClass}>{children}</div>
+    </section>
+  );
+}
+
+export function StatTile({
+  label,
+  value,
+  accent = "bg-slate-300",
+}: {
+  label: string;
+  value: string | number;
+  accent?: string;
+}) {
+  return (
+    <div className="flex items-stretch overflow-hidden rounded-md border border-slate-200 bg-white">
+      <div className={`w-1 ${accent}`} />
+      <div className="px-4 py-3">
+        <div className="text-2xl font-semibold tabular-nums text-slate-900">{value}</div>
+        <div className="mt-0.5 text-[11px] uppercase tracking-wide text-slate-500">{label}</div>
+      </div>
     </div>
   );
 }

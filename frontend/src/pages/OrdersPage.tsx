@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, type Order, type Product } from "../api";
-import { Card, StageProgress, StatusBadge } from "../components/ui";
+import { Panel, StageProgress, StatusBadge } from "../components/ui";
+
+const inputClass =
+  "mt-1 rounded border border-slate-300 px-2.5 py-1.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500";
+const labelClass = "flex flex-col text-xs font-medium uppercase tracking-wide text-slate-500";
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -33,16 +37,16 @@ export default function OrdersPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <Card title="NEW PRODUCTION ORDER">
+    <div className="space-y-5">
+      <Panel title="New production order">
         <form onSubmit={submit} className="flex flex-wrap items-end gap-3">
-          <label className="flex flex-col text-sm text-slate-600">
+          <label className={labelClass}>
             Product
             <select
               required
               value={form.product_id}
               onChange={(e) => setForm({ ...form, product_id: e.target.value })}
-              className="mt-1 rounded-lg border border-slate-300 px-3 py-2"
+              className={inputClass}
             >
               <option value="">Select…</option>
               {products.map((p) => (
@@ -52,7 +56,7 @@ export default function OrdersPage() {
               ))}
             </select>
           </label>
-          <label className="flex flex-col text-sm text-slate-600">
+          <label className={labelClass}>
             Quantity
             <input
               required
@@ -61,60 +65,63 @@ export default function OrdersPage() {
               step="0.1"
               value={form.quantity}
               onChange={(e) => setForm({ ...form, quantity: e.target.value })}
-              className="mt-1 w-32 rounded-lg border border-slate-300 px-3 py-2"
+              className={`${inputClass} w-32`}
             />
           </label>
-          <label className="flex flex-col text-sm text-slate-600">
+          <label className={labelClass}>
             Customer
             <input
               value={form.customer}
               onChange={(e) => setForm({ ...form, customer: e.target.value })}
-              className="mt-1 rounded-lg border border-slate-300 px-3 py-2"
+              className={inputClass}
             />
           </label>
-          <button className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-700">
+          <button className="rounded bg-indigo-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-indigo-700">
             Create order
           </button>
         </form>
         {error && <p className="mt-2 text-sm text-rose-600">{error}</p>}
-      </Card>
+      </Panel>
 
-      <Card title={`ORDERS (${orders.length})`}>
+      <Panel title={`Orders · ${orders.length}`} bodyClass="">
         <table className="w-full text-left text-sm">
-          <thead className="text-xs uppercase text-slate-400">
-            <tr>
-              <th className="pb-2">Code</th>
-              <th className="pb-2">Product</th>
-              <th className="pb-2">Qty</th>
-              <th className="pb-2">Customer</th>
-              <th className="pb-2">Routing</th>
-              <th className="pb-2">Status</th>
+          <thead>
+            <tr className="border-b border-slate-200 bg-slate-50 text-[11px] uppercase tracking-wide text-slate-500">
+              <th className="px-4 py-2 font-medium">Code</th>
+              <th className="px-4 py-2 font-medium">Product</th>
+              <th className="px-4 py-2 font-medium">Qty</th>
+              <th className="px-4 py-2 font-medium">Customer</th>
+              <th className="px-4 py-2 font-medium">Routing</th>
+              <th className="px-4 py-2 font-medium">Status</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody>
             {orders.map((o) => (
-              <tr key={o.id}>
-                <td className="py-2.5">
-                  <Link to={`/orders/${o.id}`} className="font-medium text-sky-700 hover:underline">
+              <tr key={o.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
+                <td className="px-4 py-2.5">
+                  <Link
+                    to={`/orders/${o.id}`}
+                    className="font-medium text-indigo-600 hover:underline"
+                  >
                     {o.code}
                   </Link>
                 </td>
-                <td className="py-2.5 text-slate-700">{o.product.name}</td>
-                <td className="py-2.5 text-slate-700">
+                <td className="px-4 py-2.5 text-slate-700">{o.product.name}</td>
+                <td className="px-4 py-2.5 tabular-nums text-slate-700">
                   {o.quantity} {o.product.unit}
                 </td>
-                <td className="py-2.5 text-slate-500">{o.customer ?? "—"}</td>
-                <td className="py-2.5">
+                <td className="px-4 py-2.5 text-slate-500">{o.customer ?? "—"}</td>
+                <td className="px-4 py-2.5">
                   <StageProgress stages={o.stages} />
                 </td>
-                <td className="py-2.5">
+                <td className="px-4 py-2.5">
                   <StatusBadge status={o.status} />
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-      </Card>
+      </Panel>
     </div>
   );
 }
