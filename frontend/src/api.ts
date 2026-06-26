@@ -33,6 +33,8 @@ export interface Dashboard {
   open_quantity_kg: number;
   stage_load: Record<string, number>;
   avg_lead_time_hours: number | null;
+  stage_avg_hours: Record<string, number>;
+  bottleneck_stage: string | null;
   recent_orders: Order[];
 }
 

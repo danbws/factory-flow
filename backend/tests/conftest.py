@@ -37,3 +37,14 @@ def client():
         yield c
     app.dependency_overrides.clear()
     Base.metadata.drop_all(engine)
+
+
+@pytest.fixture()
+def db_session():
+    """A session on the same in-memory DB the app uses — for setting up state
+    (e.g. controlled timestamps) that the API doesn't expose."""
+    db = TestingSession()
+    try:
+        yield db
+    finally:
+        db.close()

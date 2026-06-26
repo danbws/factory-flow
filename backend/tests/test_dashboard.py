@@ -1,3 +1,8 @@
+from datetime import datetime, timedelta, timezone
+
+from sqlalchemy import select
+
+from app.models import OrderStage
 from tests.test_orders import make_order, make_product
 
 
@@ -32,3 +37,26 @@ def test_avg_lead_time_only_counts_completed_orders(client):
     # Completed in the same test run, so lead time is a small non-negative number
     assert data["avg_lead_time_hours"] is not None
     assert data["avg_lead_time_hours"] >= 0
+
+
+def test_bottleneck_is_the_slowest_stage(client, db_session):
+    product = make_product(client)
+    order = make_order(client, product["id"], routing=["Weaving", "Dyeing"])
+
+    # Inject controlled durations: Weaving = 1h, Dyeing = 5h (the bottleneck).
+    now = datetime.now(timezone.utc)
+    stages = db_session.scalars(
+        select(OrderStage).where(OrderStage.order_id == order["id"])
+    ).all()
+    by_name = {s.name: s for s in stages}
+    by_name["Weaving"].started_at = now - timedelta(hours=6)
+    by_name["Weaving"].finished_at = now - timedelta(hours=5)
+    by_name["Dyeing"].started_at = now - timedelta(hours=5)
+    by_name["Dyeing"].finished_at = now
+    db_session.commit()
+
+    data = client.get("/api/dashboard").json()
+
+    assert data["stage_avg_hours"]["Weaving"] == 1.0
+    assert data["stage_avg_hours"]["Dyeing"] == 5.0
+    assert data["bottleneck_stage"] == "Dyeing"

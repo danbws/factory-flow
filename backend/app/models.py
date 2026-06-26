@@ -85,5 +85,12 @@ class OrderStage(Base):
 
     order: Mapped[ProductionOrder] = relationship(back_populates="stages")
 
+    @property
+    def duration_hours(self) -> float | None:
+        """Hours this stage took (start to finish). None until both are set."""
+        if not self.started_at or not self.finished_at:
+            return None
+        return (self.finished_at - self.started_at).total_seconds() / 3600
+
 
 DEFAULT_ROUTING = ["Weaving", "Dyeing", "Finishing", "Quality Check"]

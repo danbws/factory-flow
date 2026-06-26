@@ -47,6 +47,19 @@ def dashboard(db: Session = Depends(get_db)):
     lead_times = [o.lead_time_hours for o in done if o.lead_time_hours is not None]
     avg_lead_time = round(sum(lead_times) / len(lead_times), 1) if lead_times else None
 
+    # Average time spent in each stage (only finished stages count). The slowest
+    # stage is the bottleneck — where batches pile up and the plant loses money.
+    durations: dict[str, list[float]] = {}
+    finished_stages = db.scalars(
+        select(OrderStage).where(
+            OrderStage.started_at.is_not(None), OrderStage.finished_at.is_not(None)
+        )
+    ).all()
+    for stage in finished_stages:
+        durations.setdefault(stage.name, []).append(stage.duration_hours)
+    stage_avg = {name: round(sum(v) / len(v), 1) for name, v in durations.items()}
+    bottleneck = max(stage_avg, key=stage_avg.get) if stage_avg else None
+
     recent = db.scalars(
         select(ProductionOrder)
         .options(selectinload(ProductionOrder.stages), selectinload(ProductionOrder.product))
@@ -59,5 +72,7 @@ def dashboard(db: Session = Depends(get_db)):
         open_quantity_kg=float(open_qty or 0),
         stage_load=stage_load,
         avg_lead_time_hours=avg_lead_time,
+        stage_avg_hours=stage_avg,
+        bottleneck_stage=bottleneck,
         recent_orders=recent,
     )

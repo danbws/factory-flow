@@ -26,6 +26,7 @@ export default function DashboardPage() {
   if (!data) return <p className="text-sm text-slate-400">Loading…</p>;
 
   const maxLoad = Math.max(1, ...Object.values(data.stage_load));
+  const maxStageAvg = Math.max(1, ...Object.values(data.stage_avg_hours));
 
   return (
     <div className="space-y-5">
@@ -111,6 +112,48 @@ export default function DashboardPage() {
           </table>
         </Panel>
       </div>
+
+      <Panel
+        title="Average time per stage"
+        actions={
+          data.bottleneck_stage && (
+            <span className="flex items-center gap-1.5 text-xs font-medium text-rose-600">
+              <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
+              Bottleneck: {data.bottleneck_stage}
+            </span>
+          )
+        }
+      >
+        {Object.keys(data.stage_avg_hours).length === 0 ? (
+          <p className="text-sm text-slate-400">No finished stages yet.</p>
+        ) : (
+          <table className="w-full text-sm">
+            <tbody>
+              {Object.entries(data.stage_avg_hours).map(([stage, hours]) => {
+                const isBottleneck = stage === data.bottleneck_stage;
+                return (
+                  <tr key={stage} className="border-b border-slate-100 last:border-0">
+                    <td className="py-2 text-slate-700">{stage}</td>
+                    <td className="py-2 pl-4">
+                      <div className="flex items-center gap-2">
+                        <div className="h-2 flex-1 rounded-sm bg-slate-100">
+                          <div
+                            className={`h-2 rounded-sm ${isBottleneck ? "bg-rose-500" : "bg-emerald-500"}`}
+                            style={{ width: `${(hours / maxStageAvg) * 100}%` }}
+                          />
+                        </div>
+                        <span className="w-14 text-right font-medium tabular-nums text-slate-800">
+                          {hours}h
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+      </Panel>
     </div>
   );
 }

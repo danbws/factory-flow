@@ -60,4 +60,6 @@ class DashboardOut(BaseModel):
     open_quantity_kg: float
     stage_load: dict[str, int]  # stage name -> nr of orders currently sitting there
     avg_lead_time_hours: float | None  # mean wall-clock hours for completed orders
+    stage_avg_hours: dict[str, float]  # stage name -> mean hours spent in that stage
+    bottleneck_stage: str | None  # stage with the highest average time — where work piles up
     recent_orders: list[OrderOut]
