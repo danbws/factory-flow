@@ -55,7 +55,8 @@ export const api = {
   products: () => request<Product[]>("/api/products"),
   createProduct: (data: Omit<Product, "id" | "description"> & { description?: string }) =>
     request<Product>("/api/products", { method: "POST", body: JSON.stringify(data) }),
-  orders: () => request<Order[]>("/api/orders"),
+  orders: (status?: OrderStatus) =>
+    request<Order[]>(`/api/orders${status ? `?status=${status}` : ""}`),
   order: (id: number) => request<Order>(`/api/orders/${id}`),
   createOrder: (data: { product_id: number; quantity: number; customer?: string }) =>
     request<Order>("/api/orders", { method: "POST", body: JSON.stringify(data) }),

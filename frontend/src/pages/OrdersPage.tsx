@@ -1,22 +1,39 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { api, type Order, type Product } from "../api";
+import { api, type Order, type OrderStatus, type Product } from "../api";
 import { Panel, StageProgress, StatusBadge } from "../components/ui";
 
 const inputClass =
   "mt-1 rounded border border-slate-300 px-2.5 py-1.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500";
 const labelClass = "flex flex-col text-xs font-medium uppercase tracking-wide text-slate-500";
 
+const FILTERS: { value: OrderStatus | "all"; label: string }[] = [
+  { value: "all", label: "All" },
+  { value: "planned", label: "Planned" },
+  { value: "in_progress", label: "In progress" },
+  { value: "done", label: "Done" },
+  { value: "cancelled", label: "Cancelled" },
+];
+
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [error, setError] = useState("");
+  const [filter, setFilter] = useState<OrderStatus | "all">("all");
   const [form, setForm] = useState({ product_id: "", quantity: "", customer: "" });
 
-  const refresh = () => api.orders().then(setOrders).catch((e) => setError(e.message));
+  const refresh = useCallback(() => {
+    api
+      .orders(filter === "all" ? undefined : filter)
+      .then(setOrders)
+      .catch((e) => setError(e.message));
+  }, [filter]);
 
   useEffect(() => {
     refresh();
+  }, [refresh]);
+
+  useEffect(() => {
     api.products().then(setProducts).catch(() => {});
   }, []);
 
@@ -83,7 +100,30 @@ export default function OrdersPage() {
         {error && <p className="mt-2 text-sm text-rose-600">{error}</p>}
       </Panel>
 
-      <Panel title={`Orders · ${orders.length}`} bodyClass="">
+      <Panel
+        title={`Orders · ${orders.length}`}
+        bodyClass=""
+        actions={
+          <div className="flex gap-1">
+            {FILTERS.map((f) => (
+              <button
+                key={f.value}
+                onClick={() => setFilter(f.value)}
+                className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
+                  filter === f.value
+                    ? "bg-indigo-600 text-white"
+                    : "text-slate-500 hover:bg-slate-100"
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+        }
+      >
+        {orders.length === 0 ? (
+          <p className="px-4 py-6 text-sm text-slate-400">No orders match this filter.</p>
+        ) : (
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-slate-200 bg-slate-50 text-[11px] uppercase tracking-wide text-slate-500">
@@ -121,6 +161,7 @@ export default function OrdersPage() {
             ))}
           </tbody>
         </table>
+        )}
       </Panel>
     </div>
   );
