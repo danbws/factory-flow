@@ -104,20 +104,28 @@ export default function OrdersPage() {
         title={`Orders · ${orders.length}`}
         bodyClass=""
         actions={
-          <div className="flex gap-1">
-            {FILTERS.map((f) => (
-              <button
-                key={f.value}
-                onClick={() => setFilter(f.value)}
-                className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
-                  filter === f.value
-                    ? "bg-indigo-600 text-white"
-                    : "text-slate-500 hover:bg-slate-100"
-                }`}
-              >
-                {f.label}
-              </button>
-            ))}
+          <div className="flex items-center gap-3">
+            <div className="flex gap-1">
+              {FILTERS.map((f) => (
+                <button
+                  key={f.value}
+                  onClick={() => setFilter(f.value)}
+                  className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
+                    filter === f.value
+                      ? "bg-indigo-600 text-white"
+                      : "text-slate-500 hover:bg-slate-100"
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+            <a
+              href={`/api/orders/export.csv${filter === "all" ? "" : `?status=${filter}`}`}
+              className="rounded border border-slate-300 px-2.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50"
+            >
+              Export CSV
+            </a>
           </div>
         }
       >

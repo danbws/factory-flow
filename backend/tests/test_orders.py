@@ -34,6 +34,23 @@ def test_order_gets_default_routing_and_code(client):
     assert order["code"].startswith("PO-")
 
 
+def test_export_csv_returns_a_row_per_order(client):
+    product = make_product(client)
+    make_order(client, product["id"], customer="Hanier Textiles")
+    make_order(client, product["id"], customer="Zion Fabrics")
+
+    resp = client.get("/api/orders/export.csv")
+
+    assert resp.status_code == 200
+    assert resp.headers["content-type"].startswith("text/csv")
+    assert "attachment" in resp.headers["content-disposition"]
+    lines = resp.text.strip().splitlines()
+    assert lines[0] == "code,product,quantity,unit,customer,status,created_at"
+    assert len(lines) == 3  # header + 2 orders
+    assert "Hanier Textiles" in resp.text
+    assert "Zion Fabrics" in resp.text
+
+
 def test_advance_walks_the_full_routing(client):
     product = make_product(client)
     order = make_order(client, product["id"], routing=["Dyeing", "Quality Check"])

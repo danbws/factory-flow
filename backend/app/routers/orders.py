@@ -1,6 +1,8 @@
+import csv
+import io
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
@@ -37,6 +39,42 @@ def list_orders(status: OrderStatus | None = None, db: Session = Depends(get_db)
     if status:
         query = query.where(ProductionOrder.status == status)
     return db.scalars(query).all()
+
+
+@router.get("/export.csv")
+def export_orders_csv(status: OrderStatus | None = None, db: Session = Depends(get_db)):
+    """Download the orders as CSV — the format a plant manager drops into a
+    spreadsheet. Honors the same status filter as the list endpoint."""
+    query = (
+        select(ProductionOrder)
+        .options(selectinload(ProductionOrder.product))
+        .order_by(ProductionOrder.created_at.desc())
+    )
+    if status:
+        query = query.where(ProductionOrder.status == status)
+    orders = db.scalars(query).all()
+
+    buffer = io.StringIO()
+    writer = csv.writer(buffer)
+    writer.writerow(["code", "product", "quantity", "unit", "customer", "status", "created_at"])
+    for o in orders:
+        writer.writerow(
+            [
+                o.code,
+                o.product.name,
+                o.quantity,
+                o.product.unit,
+                o.customer or "",
+                o.status.value,
+                o.created_at.isoformat(),
+            ]
+        )
+
+    return Response(
+        content=buffer.getvalue(),
+        media_type="text/csv",
+        headers={"Content-Disposition": 'attachment; filename="production-orders.csv"'},
+    )
 
 
 @router.post("", response_model=OrderOut, status_code=201)

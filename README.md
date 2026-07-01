@@ -77,6 +77,7 @@ pytest
 | GET    | `/api/products`           | List products                            |
 | POST   | `/api/products`           | Create product (unique SKU)              |
 | GET    | `/api/orders`             | List orders (filter by `status`)         |
+| GET    | `/api/orders/export.csv`  | Download orders as CSV (honors `status`) |
 | POST   | `/api/orders`             | Create order with default/custom routing |
 | POST   | `/api/orders/{id}/advance`| Start/finish stages, complete the order  |
 | POST   | `/api/orders/{id}/cancel` | Cancel (unless already completed)        |
