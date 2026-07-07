@@ -58,6 +58,7 @@ class OrderOut(BaseModel):
 class DashboardOut(BaseModel):
     orders_by_status: dict[str, int]
     open_quantity_kg: float
+    overdue_count: int  # open orders past their due date — the on-time-delivery miss count
     stage_load: dict[str, int]  # stage name -> nr of orders currently sitting there
     avg_lead_time_hours: float | None  # mean wall-clock hours for completed orders
     stage_avg_hours: dict[str, float]  # stage name -> mean hours spent in that stage
