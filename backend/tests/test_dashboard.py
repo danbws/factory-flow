@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import select
 
-from app.models import OrderStage
+from app.models import OrderStage, ProductionOrder
 from tests.test_orders import make_order, make_product
 
 
@@ -60,3 +60,23 @@ def test_bottleneck_is_the_slowest_stage(client, db_session):
     assert data["stage_avg_hours"]["Weaving"] == 1.0
     assert data["stage_avg_hours"]["Dyeing"] == 5.0
     assert data["bottleneck_stage"] == "Dyeing"
+
+
+def test_overdue_counts_only_open_orders_past_due(client, db_session):
+    product = make_product(client)
+    late = make_order(client, product["id"])                     # open, will be past due
+    make_order(client, product["id"])                            # open, no due date → not overdue
+    on_time = make_order(client, product["id"])                  # open, future due date → not overdue
+    done = make_order(client, product["id"], routing=["Dyeing"])  # completed, past due but settled
+    _advance(client, done["id"], 2)  # 1 stage → 2 advances → DONE
+
+    now = datetime.now(timezone.utc)
+    orders = {o.id: o for o in db_session.scalars(select(ProductionOrder)).all()}
+    orders[late["id"]].due_date = now - timedelta(days=2)
+    orders[on_time["id"]].due_date = now + timedelta(days=5)
+    orders[done["id"]].due_date = now - timedelta(days=1)
+    db_session.commit()
+
+    data = client.get("/api/dashboard").json()
+
+    assert data["overdue_count"] == 1  # only the open, past-due order counts

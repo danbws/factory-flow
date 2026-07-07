@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, Depends
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
@@ -21,6 +23,19 @@ def dashboard(db: Session = Depends(get_db)):
     open_qty = db.scalar(
         select(func.coalesce(func.sum(ProductionOrder.quantity), 0.0)).where(
             ProductionOrder.status.in_([OrderStatus.PLANNED, OrderStatus.IN_PROGRESS])
+        )
+    )
+
+    # Open orders past their promised date — the on-time-delivery miss count, the
+    # first number a plant manager looks at every morning. Done/cancelled orders
+    # are settled, so only planned/in-progress can be "late".
+    overdue_count = db.scalar(
+        select(func.count())
+        .select_from(ProductionOrder)
+        .where(
+            ProductionOrder.due_date.is_not(None),
+            ProductionOrder.due_date < datetime.now(timezone.utc),
+            ProductionOrder.status.in_([OrderStatus.PLANNED, OrderStatus.IN_PROGRESS]),
         )
     )
 
@@ -70,6 +85,7 @@ def dashboard(db: Session = Depends(get_db)):
     return DashboardOut(
         orders_by_status={s.value: by_status.get(s, 0) for s in OrderStatus},
         open_quantity_kg=float(open_qty or 0),
+        overdue_count=overdue_count or 0,
         stage_load=stage_load,
         avg_lead_time_hours=avg_lead_time,
         stage_avg_hours=stage_avg,
