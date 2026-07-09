@@ -1,10 +1,21 @@
-# 🏭 Factory Flow
+# 🏭 ShopFloor
 
-A lean **production-order tracker for textile plants** — the kind of system I've been building
-for industrial clients for 10 years, distilled into a small, readable codebase.
+**See every job on your floor and catch the late ones before your customer does — without a
+whiteboard.**
 
-Production orders move through a configurable routing (Weaving → Dyeing → Finishing → Quality
-Check). The dashboard shows what's sitting on the factory floor right now, per stage.
+**ShopFloor** is production tracking **for print & embroidery shops** (2–20 people) that run today
+on whiteboards, paper tickets, and a Google Sheet. Jobs move through a configurable routing and
+the dashboard shows what's on the floor right now, per stage — plus which orders are about to be
+late.
+
+> **Who it's for:** owners and production managers of US screen-print / embroidery shops with
+> 20–150 open jobs and no reliable answer to "which jobs are about to slip?" Routing is
+> configurable, so adjacent verticals (sign/CNC, food) fit later.
+
+> **Status:** the production **engine is done** — configurable routing, stage timestamps,
+> automatic lead-time & bottleneck math, and **at-risk detection** (`GET /api/orders/at-risk`).
+> The **SaaS shell** (auth, multi-tenant orgs, billing, roles) is on the roadmap — see
+> [`docs/PRODUCT.md`](docs/PRODUCT.md).
 
 [![CI](https://github.com/danbws/factory-flow/actions/workflows/ci.yml/badge.svg)](https://github.com/danbws/factory-flow/actions/workflows/ci.yml)
 
@@ -12,13 +23,12 @@ Check). The dashboard shows what's sitting on the factory floor right now, per s
 
 ## Why this project
 
-Real factories don't lose money in code — they lose it between stages: a batch waiting two days
-for the dyehouse, an order nobody started. Factory Flow models the smallest set of concepts that
-makes that visible:
+Shops don't lose money in code — they lose it between stages: a job waiting two days on approval,
+an order nobody pressed. ShopFloor models the smallest set of concepts that makes that visible:
 
-- **Product** — what gets manufactured (fabric, yarn)
+- **Product** — what gets produced (a garment, a design)
 - **Production Order** — a quantity of a product, for a customer, with a due date
-- **Routing** — the ordered stages the batch walks through, with start/finish timestamps
+- **Routing** — the ordered stages the job walks through, with start/finish timestamps
 
 One endpoint — `POST /orders/{id}/advance` — drives the whole lifecycle: it starts the current
 stage or finishes it and starts the next, completing the order at the end. State transitions are
@@ -76,7 +86,8 @@ pytest
 | GET    | `/api/dashboard`          | KPIs, WIP per stage, recent orders       |
 | GET    | `/api/products`           | List products                            |
 | POST   | `/api/products`           | Create product (unique SKU)              |
-| GET    | `/api/orders`             | List orders (filter by `status`)         |
+| GET    | `/api/orders`             | List orders (filter by `status`, paged)  |
+| GET    | `/api/orders/at-risk`     | Open orders overdue or due soon (`within_hours`) |
 | GET    | `/api/orders/export.csv`  | Download orders as CSV (honors `status`) |
 | POST   | `/api/orders`             | Create order with default/custom routing |
 | POST   | `/api/orders/{id}/advance`| Start/finish stages, complete the order  |

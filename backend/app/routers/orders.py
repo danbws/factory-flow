@@ -1,16 +1,24 @@
 import csv
 import io
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
 from ..database import get_db
 from ..models import DEFAULT_ROUTING, OrderStage, OrderStatus, Product, ProductionOrder
-from ..schemas import OrderCreate, OrderOut
+from ..schemas import AtRiskOut, OrderCreate, OrderOut
 
 router = APIRouter(prefix="/api/orders", tags=["orders"])
+
+# Statuses that can still be "late": done/cancelled orders are settled.
+OPEN_STATUSES = [OrderStatus.PLANNED, OrderStatus.IN_PROGRESS]
+
+
+def _as_utc(dt: datetime) -> datetime:
+    """SQLite hands datetimes back naive; treat them as the UTC we stored."""
+    return dt if dt.tzinfo is not None else dt.replace(tzinfo=timezone.utc)
 
 
 def _load(db: Session, order_id: int) -> ProductionOrder:
@@ -30,7 +38,12 @@ def _next_code(db: Session) -> str:
 
 
 @router.get("", response_model=list[OrderOut])
-def list_orders(status: OrderStatus | None = None, db: Session = Depends(get_db)):
+def list_orders(
+    status: OrderStatus | None = None,
+    limit: int = Query(100, ge=1, le=500),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+):
     query = (
         select(ProductionOrder)
         .options(selectinload(ProductionOrder.stages), selectinload(ProductionOrder.product))
@@ -38,7 +51,41 @@ def list_orders(status: OrderStatus | None = None, db: Session = Depends(get_db)
     )
     if status:
         query = query.where(ProductionOrder.status == status)
+    query = query.limit(limit).offset(offset)
     return db.scalars(query).all()
+
+
+@router.get("/at-risk", response_model=list[AtRiskOut])
+def orders_at_risk(
+    within_hours: float = Query(48, gt=0),
+    db: Session = Depends(get_db),
+):
+    """Open orders that are overdue or coming due within the window — the list a
+    production manager works down every morning to stop a late shipment before
+    the customer notices. Sorted by due date (most urgent first); orders without
+    a due date can't be judged late, so they're excluded."""
+    now = datetime.now(timezone.utc)
+    threshold = now + timedelta(hours=within_hours)
+
+    orders = db.scalars(
+        select(ProductionOrder)
+        .options(selectinload(ProductionOrder.stages), selectinload(ProductionOrder.product))
+        .where(
+            ProductionOrder.due_date.is_not(None),
+            ProductionOrder.due_date <= threshold,
+            ProductionOrder.status.in_(OPEN_STATUSES),
+        )
+        .order_by(ProductionOrder.due_date.asc())
+    ).all()
+
+    result: list[AtRiskOut] = []
+    for o in orders:
+        due = _as_utc(o.due_date)
+        hours_to_due = (due - now).total_seconds() / 3600
+        risk = "overdue" if due < now else "at_risk"
+        base = OrderOut.model_validate(o).model_dump()
+        result.append(AtRiskOut(**base, risk=risk, hours_to_due=round(hours_to_due, 2)))
+    return result
 
 
 @router.get("/export.csv")

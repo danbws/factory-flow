@@ -16,8 +16,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Factory Flow",
-    description="A lean production-order tracker for textile plants.",
+    title="ShopFloor",
+    description="Production tracking for print & embroidery shops.",
     version="1.0.0",
     lifespan=lifespan,
 )
