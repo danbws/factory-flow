@@ -12,8 +12,8 @@ function navClass({ isActive }: { isActive: boolean }) {
   return [
     "flex items-center border-l-2 px-4 py-2 text-sm transition-colors",
     isActive
-      ? "border-indigo-400 bg-slate-800 text-white"
-      : "border-transparent text-slate-400 hover:bg-slate-800/60 hover:text-slate-200",
+      ? "border-indigo-500 bg-white/10 font-medium text-white"
+      : "border-transparent text-white/55 hover:bg-white/5 hover:text-white/90",
   ].join(" ");
 }
 
@@ -26,18 +26,18 @@ function Topbar() {
   const { pathname } = useLocation();
   const title = pathname.startsWith("/orders/")
     ? "Order Detail"
-    : TITLES[pathname] ?? "Factory Flow";
+    : TITLES[pathname] ?? "ShopFloor";
   return (
     <header className="flex h-14 items-center justify-between border-b border-slate-200 bg-white px-6">
-      <h1 className="text-sm font-semibold text-slate-700">{title}</h1>
+      <h1 className="font-display text-sm font-semibold text-ink">{title}</h1>
       <div className="flex items-center gap-4">
         <span className="flex items-center gap-1.5 rounded border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-          PRODUCTION
+          LIVE
         </span>
         <div className="flex items-center gap-2">
-          <span className="hidden text-xs text-slate-500 sm:inline">Daniel B.</span>
-          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-700 text-xs font-semibold text-white">
+          <span className="hidden text-xs text-steel sm:inline">Daniel B.</span>
+          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-ink text-xs font-semibold text-white">
             DB
           </div>
         </div>
@@ -46,16 +46,35 @@ function Topbar() {
   );
 }
 
+/** ShopFloor mark: squared bracket enclosing three ascending throughput bars,
+    the tallest in Safety Orange. */
+function Logo() {
+  return (
+    <span className="flex h-6 w-6 items-center justify-center" aria-hidden="true">
+      <svg viewBox="0 0 24 24" className="h-6 w-6">
+        <path
+          d="M6 4 H4 V20 H6 M18 4 H20 V20 H18"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          className="text-white/70"
+        />
+        <rect x="7.5" y="14" width="2.6" height="5" rx="0.5" className="fill-white/80" />
+        <rect x="10.7" y="11" width="2.6" height="8" rx="0.5" className="fill-white/80" />
+        <rect x="13.9" y="7" width="2.6" height="12" rx="0.5" className="fill-orange" />
+      </svg>
+    </span>
+  );
+}
+
 export default function App() {
   return (
-    <div className="flex min-h-screen bg-slate-100 text-slate-800">
-      <aside className="flex w-56 flex-col bg-slate-900">
-        <div className="flex h-14 items-center gap-2 border-b border-slate-800 px-4">
-          <div className="flex h-6 w-6 items-center justify-center rounded bg-indigo-500 text-xs font-bold text-white">
-            F
-          </div>
-          <span className="text-sm font-semibold tracking-wide text-white">
-            FACTORY<span className="text-indigo-400">FLOW</span>
+    <div className="flex min-h-screen bg-paper text-ink">
+      <aside className="flex w-56 flex-col bg-ink">
+        <div className="flex h-14 items-center gap-2 border-b border-white/10 px-4">
+          <Logo />
+          <span className="font-display text-sm font-semibold tracking-tight text-white">
+            Shop<span className="text-orange">Floor</span>
           </span>
         </div>
         <nav className="flex flex-col py-2">
@@ -65,8 +84,8 @@ export default function App() {
             </NavLink>
           ))}
         </nav>
-        <div className="mt-auto border-t border-slate-800 px-4 py-3 text-[11px] text-slate-500">
-          v1.0 · Textile module
+        <div className="mt-auto border-t border-white/10 px-4 py-3 text-[11px] text-white/40">
+          v1.0 · Print &amp; Embroidery
         </div>
       </aside>
 

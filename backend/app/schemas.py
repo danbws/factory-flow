@@ -55,6 +55,14 @@ class OrderOut(BaseModel):
     stages: list[StageOut]
 
 
+class AtRiskOut(OrderOut):
+    """An open order that is overdue or due soon, plus the computed risk fields
+    the shop floor actually acts on."""
+
+    risk: str  # "overdue" (past due) or "at_risk" (due within the window)
+    hours_to_due: float  # hours until the due date; negative if already overdue
+
+
 class DashboardOut(BaseModel):
     orders_by_status: dict[str, int]
     open_quantity_kg: float

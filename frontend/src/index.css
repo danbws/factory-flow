@@ -1,1 +1,60 @@
 @import "tailwindcss";
+
+/*
+  ShopFloor brand theme.
+  Rather than touch every utility class in the app, we redefine the accent
+  colour ramps Tailwind already generates so the whole UI re-skins coherently:
+  - indigo  -> Safety Orange  (primary actions, links, active nav, WIP bars)
+  - emerald -> Go Green       (done / healthy)
+  - amber   -> Signal Amber   (in progress / at risk)
+  - rose    -> Alert Red      (overdue / cancelled)
+  Plus semantic brand tokens (ink / paper / steel) and the two brand fonts.
+*/
+@theme {
+  /* Brand palette */
+  --color-ink: #141414;
+  --color-orange: #ff5a1f;
+  --color-amber-signal: #f5a524;
+  --color-red-alert: #e5484d;
+  --color-green-go: #30a46c;
+  --color-paper: #faf9f6;
+  --color-steel: #6b7280;
+
+  /* Fonts */
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: "Space Grotesk", "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  /* Primary = Safety Orange (remaps the template's indigo) */
+  --color-indigo-400: #ff7a47;
+  --color-indigo-500: #ff5a1f;
+  --color-indigo-600: #f04e14;
+  --color-indigo-700: #d8440f;
+
+  /* In progress / at risk = Signal Amber */
+  --color-amber-400: #f7b54a;
+  --color-amber-500: #f5a524;
+
+  /* Done / healthy = Go Green */
+  --color-emerald-500: #30a46c;
+  --color-emerald-700: #1b7a4b;
+
+  /* Overdue / cancelled = Alert Red */
+  --color-rose-500: #e5484d;
+  --color-rose-600: #dc3d42;
+}
+
+html {
+  background-color: var(--color-paper);
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+}
